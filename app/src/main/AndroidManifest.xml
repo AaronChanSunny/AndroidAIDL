@@ -18,6 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service
+            android:name=".remote.CoreService"
+            android:process=":core"/>
     </application>
 
 </manifest>

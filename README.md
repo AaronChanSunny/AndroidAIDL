@@ -1,2 +1,6 @@
-# AndroidAIDL
-Android AIDL
+# Android AIDL
+
+1. 服务端的 Binder 挂掉了，通告给客户端
+2. 客户端意外退出，要通知给服务端，服务端删除客户端信息并释放相应资源（LinkToDeath）
+3. 客户端调用服务端方法，AIDL 本身就支持，服务端方法是在服务端的 Binder 线程池中运行的，需要做好线程同步
+4. 服务端回调客户端的方法，通过 RemoteCallbackList 实现。这里需要注意，客户端的回调方法是在客户端的 Binder 线程池中运行的，如果涉及到 UI 操作的话需要做好线程切换
