@@ -1,4 +1,4 @@
-package me.aaronchan.androidaidl.remote;
+package me.aaronchan.androidaidl.remote.transport;
 
 import me.aaronchan.androidaidl.Packet;
 

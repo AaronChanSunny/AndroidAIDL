@@ -13,6 +13,8 @@ import android.util.Log;
 import me.aaronchan.androidaidl.IPacketListenerInterface;
 import me.aaronchan.androidaidl.IPacketOperatorInterface;
 import me.aaronchan.androidaidl.Packet;
+import me.aaronchan.androidaidl.remote.transport.IPacketOperator;
+import me.aaronchan.androidaidl.remote.transport.PacketOperatorImpl;
 
 /**
  * Created by aaronchan on 16/5/18.
@@ -59,12 +61,16 @@ public class CoreService extends Service {
 
             @Override
             public void registerListener(IPacketListenerInterface listener) throws RemoteException {
+                Log.d(TAG, "RegisterListener in " + Thread.currentThread().getName());
+
                 mCallbackList.register(listener);
             }
 
             @Override
             public void unRegisterListener(IPacketListenerInterface listener) throws RemoteException {
                 mCallbackList.unregister(listener);
+
+                Log.d(TAG, "UnRegisterListener in " + Thread.currentThread().getName());
             }
         };
 
@@ -75,6 +81,13 @@ public class CoreService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
+
+        super.onDestroy();
     }
 
     public void setShouldStop(boolean shouldStop) {
@@ -106,7 +119,7 @@ public class CoreService extends Service {
             super.run();
 
             while (!mShouldStop) {
-                SystemClock.sleep(3000);
+                SystemClock.sleep(5000);
 
                 notifyPacketRecv(new Packet(mPacketId, 3, "Content " + mPacketId));
 
