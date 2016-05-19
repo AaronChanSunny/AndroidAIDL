@@ -14,7 +14,9 @@ import me.aaronchan.androidaidl.IPacketListenerInterface;
 import me.aaronchan.androidaidl.IPacketOperatorInterface;
 import me.aaronchan.androidaidl.Packet;
 import me.aaronchan.androidaidl.remote.transport.IPacketOperator;
+import me.aaronchan.androidaidl.remote.transport.ITransportLayout;
 import me.aaronchan.androidaidl.remote.transport.PacketOperatorImpl;
+import me.aaronchan.androidaidl.remote.transport.TransportLayoutImpl;
 
 /**
  * Created by aaronchan on 16/5/18.
@@ -25,6 +27,7 @@ public class CoreService extends Service {
 
     private boolean mShouldStop = false;
     private IPacketOperator mIPacketOperator;
+    private ITransportLayout mITransportLayout;
     private IPacketListenerInterface mPacketListener;
     private Binder mBinder;
     private RemoteCallbackList<IPacketListenerInterface> mCallbackList;
@@ -41,6 +44,8 @@ public class CoreService extends Service {
 
         mIPacketOperator = new PacketOperatorImpl();
 
+        mITransportLayout = new TransportLayoutImpl();
+
         mBinder = new IPacketOperatorInterface.Stub() {
 
             @Override
@@ -53,10 +58,9 @@ public class CoreService extends Service {
 
             @Override
             public boolean startIM(int userId) throws RemoteException {
-                Log.d(TAG, "User " + userId + " startIM in " + Thread.currentThread().getName());
+                Log.d(TAG, "StartIM userId " + userId + " in " + Thread.currentThread().getName());
 
-                SystemClock.sleep(3000);
-                return true;
+                return mITransportLayout.startIM(userId);
             }
 
             @Override

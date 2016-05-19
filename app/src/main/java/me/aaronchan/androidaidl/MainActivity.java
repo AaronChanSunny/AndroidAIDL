@@ -99,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
                 mBound = true;
                 mRemoteService = IPacketOperatorInterface.Stub.asInterface(service);
 
-                try {
+                /*try {
                     mRemoteService.registerListener(mPacketListener);
                 } catch (RemoteException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
 
             @Override
