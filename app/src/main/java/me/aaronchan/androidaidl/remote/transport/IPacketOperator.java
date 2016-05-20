@@ -8,4 +8,6 @@ import me.aaronchan.androidaidl.Packet;
 public interface IPacketOperator {
 
     boolean sendPacket(Packet packet);
+
+    void closeSession();
 }

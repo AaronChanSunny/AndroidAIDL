@@ -11,6 +11,9 @@ public class Packet implements Parcelable {
     private long mLength;
     private String mContent;
 
+    public Packet() {
+    }
+
     public Packet(int id, long length, String content) {
         mId = id;
         mLength = length;

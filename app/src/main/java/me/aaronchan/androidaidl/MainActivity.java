@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        if (mRemoteService != null) {
+        /*if (mRemoteService != null) {
             try {
                 mRemoteService.unRegisterListener(mPacketListener);
             } catch (RemoteException e) {
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (mBound) {
             unbindService(mConn);
-        }
+        }*/
         super.onStop();
     }
 
@@ -99,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
                 mBound = true;
                 mRemoteService = IPacketOperatorInterface.Stub.asInterface(service);
 
-                /*try {
+                try {
                     mRemoteService.registerListener(mPacketListener);
                 } catch (RemoteException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
 
             @Override

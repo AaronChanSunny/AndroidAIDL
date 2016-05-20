@@ -2,23 +2,57 @@ package me.aaronchan.androidaidl.remote.session;
 
 import android.os.SystemClock;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import me.aaronchan.androidaidl.Packet;
-import me.aaronchan.androidaidl.remote.transport.OnOperatorChangedListener;
+import me.aaronchan.androidaidl.remote.io.BaseIoTask;
+import me.aaronchan.androidaidl.remote.io.OnIoChangedListener;
+import me.aaronchan.androidaidl.remote.io.RecvPacketTask;
 
 /**
  * Created by Administrator on 2016/5/19.
  */
-public class SessionOperator implements ISessionOperator {
+public class SessionOperator implements ISessionOperator, OnIoChangedListener {
 
-    @Override
-    public boolean sendPacket(Packet packet, OnOperatorChangedListener listener) {
-        SystemClock.sleep(3000);
+    private OnSessionChangedListener mSessionChangedListener;
+    private BaseIoTask mRecvTask;
+    private ExecutorService mRecvTaskExecutor;
 
-        if (listener == null) {
-            throw new IllegalArgumentException("OnOperatorChangedListener can not be null.");
+    public SessionOperator(OnSessionChangedListener onOperatorChangedListener) {
+        if (onOperatorChangedListener == null) {
+            throw new IllegalArgumentException("OnSessionChangedListener can not be null.");
         }
 
-        listener.onSendComplete(true);
+        mSessionChangedListener = onOperatorChangedListener;
+
+        initIo();
+    }
+
+    private void initIo() {
+        mRecvTask = new RecvPacketTask(this);
+
+        mRecvTaskExecutor = Executors.newSingleThreadExecutor();
+        mRecvTaskExecutor.execute(mRecvTask);
+    }
+
+    @Override
+    public boolean sendPacket(Packet packet) {
+        SystemClock.sleep(3000);
+
+        mSessionChangedListener.onSendComplete(true);
         return true;
+    }
+
+    @Override
+    public void close() {
+        mRecvTask.stop();
+    }
+
+    @Override
+    public void onRecvBytes(byte[] data) {
+        Packet packet = new Packet(0, 5, "Packet from io");
+
+        mSessionChangedListener.onRecvPacket(packet);
     }
 }

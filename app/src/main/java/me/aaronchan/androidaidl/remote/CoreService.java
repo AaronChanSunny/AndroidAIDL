@@ -1,12 +1,12 @@
 package me.aaronchan.androidaidl.remote;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -14,21 +14,21 @@ import me.aaronchan.androidaidl.IPacketListenerInterface;
 import me.aaronchan.androidaidl.IPacketOperatorInterface;
 import me.aaronchan.androidaidl.Packet;
 import me.aaronchan.androidaidl.remote.transport.IPacketOperator;
-import me.aaronchan.androidaidl.remote.transport.ITransportLayout;
-import me.aaronchan.androidaidl.remote.transport.PacketOperatorImpl;
-import me.aaronchan.androidaidl.remote.transport.TransportLayoutImpl;
+import me.aaronchan.androidaidl.remote.transport.ITransportLayoutManager;
+import me.aaronchan.androidaidl.remote.transport.OnTransportChangedListener;
+import me.aaronchan.androidaidl.remote.transport.PacketOperator;
+import me.aaronchan.androidaidl.remote.transport.TransportLayoutManager;
 
 /**
  * Created by aaronchan on 16/5/18.
  */
-public class CoreService extends Service {
+public class CoreService extends Service implements OnTransportChangedListener {
 
     private static final String TAG = CoreService.class.getSimpleName();
 
     private boolean mShouldStop = false;
-    private IPacketOperator mIPacketOperator;
-    private ITransportLayout mITransportLayout;
-    private IPacketListenerInterface mPacketListener;
+    private ITransportLayoutManager mITransportLayout;
+    private IPacketOperator mPacketOperator;
     private Binder mBinder;
     private RemoteCallbackList<IPacketListenerInterface> mCallbackList;
 
@@ -36,15 +36,16 @@ public class CoreService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        startForeground(1, new Notification());
+
         initData();
     }
 
     private void initData() {
         mCallbackList = new RemoteCallbackList<>();
 
-        mIPacketOperator = new PacketOperatorImpl();
-
-        mITransportLayout = new TransportLayoutImpl();
+        mPacketOperator = new PacketOperator(this);
+        mITransportLayout = new TransportLayoutManager(mPacketOperator);
 
         mBinder = new IPacketOperatorInterface.Stub() {
 
@@ -53,7 +54,7 @@ public class CoreService extends Service {
                 Log.d(TAG, "SendPacket " + packet.getContent() + " in " + Thread.currentThread()
                         .getName());
 
-                return mIPacketOperator.sendPacket(packet);
+                return mPacketOperator.sendPacket(packet);
             }
 
             @Override
@@ -77,8 +78,6 @@ public class CoreService extends Service {
                 Log.d(TAG, "UnRegisterListener in " + Thread.currentThread().getName());
             }
         };
-
-        new HeartBeatThread().start();
     }
 
     @Nullable
@@ -91,11 +90,9 @@ public class CoreService extends Service {
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
 
-        super.onDestroy();
-    }
+        mITransportLayout.stopIM();
 
-    public void setShouldStop(boolean shouldStop) {
-        mShouldStop = shouldStop;
+        super.onDestroy();
     }
 
     private void notifyPacketRecv(Packet packet) {
@@ -114,23 +111,9 @@ public class CoreService extends Service {
         mCallbackList.finishBroadcast();
     }
 
-    class HeartBeatThread extends Thread {
-
-        private int mPacketId = 0;
-
-        @Override
-        public void run() {
-            super.run();
-
-            while (!mShouldStop) {
-                SystemClock.sleep(5000);
-
-                notifyPacketRecv(new Packet(mPacketId, 3, "Content " + mPacketId));
-
-                mPacketId++;
-            }
-        }
-
+    @Override
+    public void onRecvPacket(Packet packet) {
+        notifyPacketRecv(packet);
     }
 
 }
